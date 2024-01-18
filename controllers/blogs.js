@@ -36,7 +36,13 @@ blogsRouter.delete('/:id',  userExtractor, async(request, response) => {
     const blog = await Blog.findById( request.params.id )
     if(blog) {
         if(blog.user.toString() === request.user.toString()) {
+            //Delete blog
             await Blog.findByIdAndDelete( request.params.id )
+
+            //Update user blogs array
+            const user = await User.findById(blog.user.toString())
+            user.blogs = user.blogs.filter( blog => blog.toString() !== request.params.id )
+            await User.findByIdAndUpdate(blog.user, user)
         }
         else{
             return response.status(401).json({ error: 'Deletion allowed only for creating user' })
